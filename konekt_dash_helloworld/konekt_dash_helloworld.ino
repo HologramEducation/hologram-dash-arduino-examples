@@ -41,6 +41,7 @@ void setup() {
 }
 
 void loop() {
+  char currChar;
   /* we don't loop sending data, since we don't want to eat up
    * a lot of data on our SIM! */
 
@@ -55,7 +56,9 @@ void loop() {
   }
 
   while (SerialCloud.available()) {
-    Serial2.write(SerialCloud.read());
+    currChar = (char)SerialCloud.read();
+    SerialUSB.write(currChar);
+    Serial2.write(currChar);
   }
 
   delay(5);
