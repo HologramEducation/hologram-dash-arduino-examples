@@ -47,7 +47,7 @@ void setup() {
   SerialUSB.println("Konekt Dash Hello World Example Started!");
   SerialUSB.print("Using Boot Version: ");
   SerialUSB.println(Dash.bootVersion()); /* Print Dash Bootloader Version */
-  //SerialCloud.println("Hello, World!"); /* one-time message */
+  SerialCloud.println("Hello, World!"); /* one-time message */
 }
 
 void loop() {
