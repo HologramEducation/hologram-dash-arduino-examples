@@ -38,6 +38,8 @@ void setup() {
   SerialUSB.println("Konekt Dash Hello World Example Started!");
   SerialCloud.begin(115200); /* Konekt Cloud */
   SerialCloud.println("Hello, World!"); /* one-time message */
+  DashPro.begin(); /* Konekt Dash Setup */
+  DashPro.pulseLED(100,5000); /* Set the User Led to flash every 5 seconds */
 }
 
 void loop() {
