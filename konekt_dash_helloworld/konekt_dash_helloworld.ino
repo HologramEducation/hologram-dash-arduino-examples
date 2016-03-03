@@ -33,10 +33,20 @@
 */
 
 void setup() {
+  /* Serial Setup */
   SerialUSB.begin(9600); /* USB UART */
   Serial2.begin(9600); /* TTL UART */
-  SerialUSB.println("Konekt Dash Hello World Example Started!");
   SerialCloud.begin(115200); /* Konekt Cloud */
+  delay(4000); /* Delay 4 seconds to wait for Usb Serial to Init.*/
+
+  /* Setup Konekt Dash */
+  Dash.begin();
+  Dash.pulseLED(100,5000); /* Set the User Led to flash every 5 seconds */
+
+  /* Serial Print Info */
+  SerialUSB.println("Konekt Dash Hello World Example Started!");
+  SerialUSB.print("Using Boot Version: ");
+  SerialUSB.println(Dash.bootVersion()); /* Print Dash Bootloader Version */
   SerialCloud.println("Hello, World!"); /* one-time message */
 }
 
