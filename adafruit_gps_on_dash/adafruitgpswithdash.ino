@@ -50,7 +50,7 @@ void setup()
     Dash.begin();
     Serial2.begin(9600);
     SerialUSB.begin(9600);
-    SerialUSB.println("Konekt GPS Test!");
+    SerialUSB.println("Hologram GPS Test!");
     SerialCloud.begin(115200);
 
     ledStartMillis = 0; /* LED off by default */  
