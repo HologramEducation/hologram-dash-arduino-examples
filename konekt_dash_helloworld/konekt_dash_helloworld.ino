@@ -1,6 +1,6 @@
-/* Konekt Dash Hello World
+/* Hologram Dash Hello World
 *
-* Author: Patrick F. Wilbur <hello@konekt.io> <pdub@pdub.net>
+* Author: Patrick F. Wilbur <hello@hologram.io> <pdub@pdub.net>
 *
 * Purpose: This program demonstrates interactive serial mode,
 * a mechanism for performing cable replacement serial passthrough
@@ -44,7 +44,7 @@ void setup() {
   Dash.pulseLED(100,5000); /* Set the User Led to flash every 5 seconds */
 
   /* Serial Print Info */
-  SerialUSB.println("Konekt Dash Hello World Example Started!");
+  SerialUSB.println("Hologram Dash Hello World Example Started!");
   SerialUSB.print("Using Boot Version: ");
   SerialUSB.println(Dash.bootVersion()); /* Print Dash Bootloader Version */
   SerialCloud.println("Hello, World!"); /* one-time message */
