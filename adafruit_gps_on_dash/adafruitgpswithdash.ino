@@ -42,6 +42,7 @@ bool downlinkDataDetected;
 bool ledOn;
 uint32_t nextGPSSerialOutput;
 uint32_t nextGPSCloudOutput;
+unsigned lastMillis;
 
 void setup()  
 {
@@ -85,6 +86,8 @@ void setup()
     delay(1000);
     // Ask for firmware version
     mySerial.println(PMTK_Q_RELEASE);
+
+    lastMillis = millis();
 
     SerialCloud.println("Init");
 }
@@ -146,8 +149,11 @@ void loop() {
     handleGPS();
 
    // if millis() or timer wraps around, we'll just reset it
-   if (nextGPSSerialOutput > millis())  nextGPSSerialOutput = millis();
-   if (nextGPSCloudOutput > millis())  nextGPSCloudOutput = millis();
+   if (lastMillis > millis()) {
+       nextGPSSerialOutput = millis();
+       nextGPSCloudOutput = millis();
+   }
+   lastMillis = millis();
 }
 
 
