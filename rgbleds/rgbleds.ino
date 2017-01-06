@@ -183,8 +183,10 @@ void loop()
     }
 
     // add latest char to our buffer.
-    tempBuffer.concat(currChar); 
-
+    if (currChar != '\0') {
+      tempBuffer.concat(currChar); 
+    }
+    
     SerialUSB.write(currChar);
   }
 
