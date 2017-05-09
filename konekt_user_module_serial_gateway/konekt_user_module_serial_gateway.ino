@@ -1,6 +1,6 @@
-/* Konekt User Module Passthrough Serial Gateway Program
+/* Hologram Dash User Module Cloud Serial Gateway Program
  *
- * Author: Patrick F. Wilbur <pat@konekt.io> <pdub@pdub.net>
+ * Author: Hologram <support@hologram.io>
  *
  * Purpose: This firmware implements serial passthrough between
  * the main user-programmable microcontroller's peripherals and
@@ -12,7 +12,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright 2015 Konekt, Inc.
+ * Copyright 2017 Konekt, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,35 @@ void setup() {
   downlinkDataDetected = false;
   ledOn = false;
   ledIndicateData();
+  printToBoth("+++");
+}
+
+void printToBoth(String msg) {
+  Serial2.println(msg);
+  SerialUSB.println(msg);
+}
+
+void writeOrFlush(char cur) {
+  if(cur == '\n') {
+      printToBoth("Sending message to cloud...");
+      int retriesLeft = 2;
+      while(retriesLeft > 0) {
+        bool res = HologramCloud.sendMessage();
+        if(!res) {
+          String msg = "Failed. Trying ";
+          msg += retriesLeft + " more times";
+          printToBoth(msg);
+        } else {
+          printToBoth("Data sent to cloud successfully");
+          break;
+        }
+        retriesLeft--;
+      }
+    } else {
+      HologramCloud.write(cur);
+    }
+    uplinkDataDetected=true;
+    ledIndicateData();
 }
 
 void loop() {
@@ -92,15 +121,11 @@ void loop() {
   }
   
   while(Serial2.available()) {
-    SerialCloud.write(Serial2.read());
-    uplinkDataDetected=true;
-    ledIndicateData();
+    writeOrFlush(Serial2.available());
   }
 
   while(SerialUSB.available()) {
-    SerialCloud.write(SerialUSB.read());
-    uplinkDataDetected=true;
-    ledIndicateData();
+    writeOrFlush(SerialUSB.read());
   }
 
   while(SerialCloud.available()) {
@@ -119,4 +144,5 @@ void ledIndicateData() {
   ledStartMillis=millis();
   ledOn=true;
 }
+
 
