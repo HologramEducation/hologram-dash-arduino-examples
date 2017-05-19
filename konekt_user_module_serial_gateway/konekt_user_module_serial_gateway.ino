@@ -2,17 +2,14 @@
  *
  * Author: Hologram <support@hologram.io>
  *
- * Purpose: This firmware implements serial passthrough between
- * the main user-programmable microcontroller's peripherals and
- * the M2 microcontroller running Konekt's drivers and networking
- * and cloud stacks. This firmware is replaced whenever a user 
- * loads custom user firmware.
+ * Purpose: This firmware sends all data that comes in on a serial port to the
+ * Hologram Cloud. Data is sent once a newline is detected.
  *
  * License: Licensed under the MIT License.
  *
  * The MIT License (MIT)
  *
- * Copyright 2017 Konekt, Inc.
+ * Copyright 2017 Hologram (Konekt, Inc.)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,36 +32,29 @@
 */
 
 #define LED_DATA_INDICATOR_DURATION 200
-#define LED_DATA_INDICATOR_FLICKER_OFF_DURATION 50
-#define LED_DATA_INDICATOR_FLICKER_ON_DURATION 5
 
 /* globals */
-unsigned ledStartMillis;
-unsigned ledNextFlickerMillis;
-bool uplinkDataDetected;
-bool downlinkDataDetected;
-bool ledOn;
+unsigned ledStopMillis;
+bool isHandlingData;
 
 void setup() {
-  Dash.begin();
   Serial2.begin(9600);
   SerialUSB.begin(9600);
-  SerialCloud.begin(115200);
-  ledStartMillis = 0; /* LED off by default */  
-  ledNextFlickerMillis = 0;
-  uplinkDataDetected = false;
-  downlinkDataDetected = false;
-  ledOn = false;
-  ledIndicateData();
+  ledStopMillis = 0; /* LED off by default */  
+  isHandlingData = false;
   printToBoth("+++");
 }
 
 void printToBoth(String msg) {
+  // Write to USB and UART
   Serial2.println(msg);
   SerialUSB.println(msg);
 }
 
 void writeOrFlush(char cur) {
+  // Write each character to HologramCloud buffer and then
+  // send to cloud on a newline character
+  isHandlingData = true;
   if(cur == '\n') {
       printToBoth("Sending message to cloud...");
       int retriesLeft = 2;
@@ -82,44 +72,16 @@ void writeOrFlush(char cur) {
       }
     } else {
       HologramCloud.write(cur);
+      setLedState();
     }
-    uplinkDataDetected=true;
-    ledIndicateData();
 }
+
 
 void loop() {
   char currChar;
-  
-  if(ledOn) {
-    Dash.onLED();
-  } else {
-    Dash.offLED();
-  }
-  if (uplinkDataDetected) {
-    /* for uplink data, we turn on LED for duration */
-    ledOn=true;
-    if(millis() > (ledStartMillis + LED_DATA_INDICATOR_DURATION)) {
-      uplinkDataDetected=false;
-      ledOn=false;
-    }
-  }
-  if (!uplinkDataDetected && downlinkDataDetected) {
-    /* for downlink data, we flash LED for duration */
-    if(millis() > ledNextFlickerMillis) {
-      if(ledOn) {
-        ledOn=false;
-        ledNextFlickerMillis = millis() + LED_DATA_INDICATOR_FLICKER_OFF_DURATION;
-      } else {
-        ledOn=true;
-        ledNextFlickerMillis = millis() + LED_DATA_INDICATOR_FLICKER_ON_DURATION;
-      }
-    }
-    if(millis() > (ledStartMillis + LED_DATA_INDICATOR_DURATION)) {
-      downlinkDataDetected=false;
-      ledOn=false;
-    }
-  }
-  
+
+  isHandlingData = false;
+
   while(Serial2.available()) {
     writeOrFlush(Serial2.available());
   }
@@ -132,17 +94,25 @@ void loop() {
     currChar = (char)SerialCloud.read();
     SerialUSB.write(currChar);
     Serial2.write(currChar);
-    downlinkDataDetected=true;
-    ledNextFlickerMillis = millis() + LED_DATA_INDICATOR_FLICKER_ON_DURATION;
-    ledIndicateData();
+    isHandlingData = true;
   }
 
+  setLedState();
+  
   delay(1);
 }
 
-void ledIndicateData() {
-  ledStartMillis=millis();
-  ledOn=true;
+void setLedState() {
+  /* Blink LED while we're doing data operations and 200ms afterward */
+  
+  if(ledStopMillis > 0 && ledStopMillis < millis()) {
+    Dash.offLED();
+    ledStopMillis = 0;
+  }
+  
+  if(isHandlingData && ledStopMillis == 0) {
+    Dash.pulseLED(25, 50);
+    ledStopMillis = millis() + LED_DATA_INDICATOR_DURATION;
+  }
 }
-
 
